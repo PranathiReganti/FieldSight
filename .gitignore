@@ -1,0 +1,13 @@
+﻿node_modules/
+.env
+*.env
+
+backend/.env
+frontend/.env
+
+uploads/
+dist/
+build/
+
+debug/
+coverage/

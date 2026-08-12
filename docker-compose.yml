@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: fieldsight-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: fieldsight
+      POSTGRES_PASSWORD: fieldsight_dev_password
+      POSTGRES_DB: fieldsight
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
