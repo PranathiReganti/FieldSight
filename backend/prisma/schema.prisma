@@ -2,7 +2,7 @@ generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
   importFileExtension = "js"
-}
+} him caal shand
 
 datasource db {
   provider = "postgresql"
