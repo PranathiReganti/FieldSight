@@ -347,6 +347,7 @@ function mapLetterForPlate(value: string): string[] {
     "5": ["S"],
     "6": ["G"],
     "8": ["B"],
+    H: ["M", "H"],
   };
 
   return alternatives[value] ?? [value];
@@ -2764,11 +2765,11 @@ async function runPlateOcrForCandidate(
   for (
     const variant of variants.slice(
       0,
-      3
+      2
     )
   ) {
     for (
-      const psm of PLATE_PSMS
+      const psm of [PSM.SINGLE_LINE, PSM.SINGLE_BLOCK]
     ) {
       const ocr =
         await runPlateOcrPass(
@@ -3266,7 +3267,7 @@ async function detectVehicleFromPlate(
     const maxCandidatesToProcess =
       Math.min(
         prelimScored.length,
-        10
+        3
       );
 
     for (
@@ -3357,6 +3358,14 @@ async function detectVehicleFromPlate(
           ocrResult.bestConfidence,
         crop,
       });
+
+      if (
+        bestNumber !== null &&
+        validateVehicleNumber(bestNumber) &&
+        breakdown.finalScore >= 80
+      ) {
+        break;
+      }
     }
 
     ranked.sort(
@@ -4378,23 +4387,6 @@ async function performOCR(
 
     const variants = [
       {
-        label: "original",
-
-        buffer:
-          await sharp(
-            imagePath
-          )
-            .resize({
-              width:
-                targetWidth,
-              withoutEnlargement:
-                false,
-            })
-            .png()
-            .toBuffer(),
-      },
-
-      {
         label: "enhanced",
 
         buffer:
@@ -4416,44 +4408,10 @@ async function performOCR(
             .png()
             .toBuffer(),
       },
-
-      {
-        label: "contrast",
-
-        buffer:
-          await sharp(
-            imagePath
-          )
-            .resize({
-              width:
-                targetWidth,
-              withoutEnlargement:
-                false,
-            })
-            .grayscale()
-            .normalize()
-            .linear(
-              1.15,
-              -8
-            )
-            .sharpen({
-              sigma: 0.7,
-            })
-            .png()
-            .toBuffer(),
-      },
     ];
 
-    /**
-     * Sparse text:
-     * Good when text is scattered around a vehicle.
-     *
-     * Auto:
-     * Good for more normal text blocks.
-     */
     const psms = [
       PSM.SPARSE_TEXT,
-      PSM.AUTO,
     ] as const;
 
     for (
