@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API_URL = "https://fieldsight-vwq1.onrender.com";
+const API_URL = "https://fieldsight-wwq1.onrender.com"; 
 
 function App() {
   const [file, setFile] = useState(null);
