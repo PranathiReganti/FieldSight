@@ -3307,10 +3307,8 @@ async function detectVehicleFromPlate(
             candidate.source.includes("bottom");
 
           const positionScore =
-            yCenter >= 0.45 && yCenter <= 0.95
-              ? (isTargetedPlateZone ? 50 : 30)
-              : yCenter < 0.42
-              ? -50
+            yCenter >= 0.40 && yCenter <= 0.95
+              ? (isTargetedPlateZone ? 35 : 20)
               : 0;
 
           const prelimScore =
