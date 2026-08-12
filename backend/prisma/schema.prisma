@@ -1,8 +1,9 @@
 generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
-  importFileExtension = "j correct source mission code alone comfort land keeps rough rough but she ten minutess"
-}
+  importFileExtension = "ts"
+} 
+
 
 datasource db {
   provider = "postgresql"
