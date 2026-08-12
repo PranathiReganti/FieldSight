@@ -4,10 +4,10 @@
   "description": "FieldSight intelligent vehicle image verification backend",
   "main": "dist/server.js",
   "scripts": {
-  "dev": "tsx watch src/server.ts",
-  "build": "prisma generate && tsc",
-  "start": "node dist/server.js"
-}, 
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "prisma migrate deploy && node dist/server.js"
+  }, 
   "keywords": [
     "image-processing",
     "vehicle-verification",

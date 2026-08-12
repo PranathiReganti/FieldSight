@@ -52,10 +52,19 @@ const upload = multer({
 });
 
 // Health check
-app.get("/health", (_req, res) => {
+app.get("/health", async (_req, res) => {
+  let dbStatus = "unknown";
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    dbStatus = "connected";
+  } catch (err) {
+    dbStatus = err instanceof Error ? err.message : "disconnected";
+  }
+
   res.status(200).json({
     status: "ok",
     service: "fieldsight-api",
+    database: dbStatus,
   });
 });
 
@@ -116,8 +125,11 @@ app.post(
     } catch (error) {
       console.error("Image upload error:", error);
 
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to upload image";
+
       return res.status(500).json({
-        error: "Failed to upload image",
+        error: errorMessage,
       });
     }
   }
@@ -155,8 +167,13 @@ app.get("/api/images/:id/status", async (req, res) => {
   } catch (error) {
     console.error("Status check error:", error);
 
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve processing status";
+
     return res.status(500).json({
-      error: "Failed to retrieve processing status",
+      error: errorMessage,
     });
   }
 });
@@ -235,8 +252,13 @@ app.get("/api/images/:id/results", async (req, res) => {
   } catch (error) {
     console.error("Results retrieval error:", error);
 
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve image results";
+
     return res.status(500).json({
-      error: "Failed to retrieve image results",
+      error: errorMessage,
     });
   }
 });
