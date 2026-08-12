@@ -499,6 +499,55 @@ input {
 }
 
 /* =========================
+   CAPTURE GUIDANCE
+========================= */
+
+.capture-guidance-box {
+  margin-top: 18px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #fed7d7;
+  text-align: left;
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.06);
+}
+
+.capture-guidance-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9b2c2c;
+  font-size: 14px;
+}
+
+.guidance-icon {
+  font-size: 16px;
+}
+
+.capture-guidance-desc {
+  margin: 6px 0 10px;
+  color: #4a5568;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.capture-guidance-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #4a5568;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.capture-guidance-list li {
+  margin-bottom: 4px;
+}
+
+.capture-guidance-list strong {
+  color: #2d3748;
+}
+
+/* =========================
    RESULT GRID
 ========================= */
 

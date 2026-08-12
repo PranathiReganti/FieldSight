@@ -365,6 +365,29 @@ function App() {
                   ? "✓ Valid vehicle number"
                   : "✕ Vehicle number not validated"}
               </div>
+
+              {!isVehicleValid && (
+                <div className="capture-guidance-box">
+                  <div className="capture-guidance-title">
+                    <span className="guidance-icon">💡</span>
+                    <strong>Photo Capture Tips</strong>
+                  </div>
+                  <p className="capture-guidance-desc">
+                    The license plate could not be clearly recognized. For best results:
+                  </p>
+                  <ul className="capture-guidance-list">
+                    <li>
+                      <strong>Direct Angle:</strong> Capture straight-on facing the vehicle's front or rear (avoid steep diagonal/side views).
+                    </li>
+                    <li>
+                      <strong>Clear Framing:</strong> Ensure the license plate is centered, close, and unobscured.
+                    </li>
+                    <li>
+                      <strong>Sharp Focus & Lighting:</strong> Hold the camera steady to avoid blur and ensure adequate light.
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {/* Result Grid */}
