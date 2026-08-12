@@ -1,8 +1,18 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import crypto from "crypto";
 import sharp from "sharp";
 import { createWorker, PSM } from "tesseract.js";
 import path from "path";
+
+async function initTesseractWorker() {
+  const localLangPath = path.resolve(process.cwd());
+  const options = fsSync.existsSync(path.join(localLangPath, "eng.traineddata"))
+    ? { langPath: localLangPath }
+    : undefined;
+
+  return await createWorker("eng", 1, options);
+}
 
 /**
  * Result returned to the processing queue.
@@ -3243,7 +3253,7 @@ async function detectVehicleFromPlate(
    * sequential recognition jobs. :contentReference[oaicite:2]{index=2}
    */
   const worker =
-    await createWorker("eng");
+    await initTesseractWorker();
 
   const ranked:
     RankedPlateCandidate[] =
@@ -4314,7 +4324,7 @@ async function performOCR(
    * Tesseract worker for general OCR.
    */
   const worker =
-    await createWorker("eng");
+    await initTesseractWorker();
 
   const cleanOcrText = (
     text: string
