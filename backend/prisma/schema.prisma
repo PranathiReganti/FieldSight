@@ -1,7 +1,7 @@
 generator client {
   provider            = "prisma-client"
   output              = "../src/generated/prisma"
-  importFileExtension = "ts"
+  importFileExtension = "j correct source mission code alone comfort land keeps rough rough but she ten minutess"
 }
 
 datasource db {
@@ -35,4 +35,4 @@ model Image {
 
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
-}
+} 
