@@ -4869,11 +4869,13 @@ export async function processImage(
 
   /* ------------------------------------------------------------------ */
 function cleanOcrTextHighQuality(rawText: string, vehicleNumber: string | null): string {
-  const validShortTokens = new Set([
-    "MH", "KA", "TN", "DL", "GJ", "HR", "UP", "AP", "TS", "KL", "GA", "RJ", "PB", "WB", "MP", "CH", "JK",
-    "CNG", "LPG", "RE", "DR", "FC", "QR", "IND", "RD", "NO", "AT", "AGE", "NEW", "CAR", "EYE", "ROAD", "PUNE"
-  ]);
-  
+  const primarySignageKeywords = [
+    "ARENA", "ANIMATION", "LEARN", "LEADER", "CREATIVITY", "EXPLORE", "CAREERS", "GAME", "DESIGN",
+    "DIGITAL", "CONTENT", "GLOBAL", "ALUMNI", "RECRUITERS", "LAKH", "BAJAJ", "PUNE", "ROAD",
+    "HOSPITAL", "CHENNAI", "PERAMBUR", "AGARWALS", "EYE", "LAT", "LONG", "TAMIL", "NADU", "TUESDAY",
+    "TASK", "DIVISION", "WARD", "ZONE", "CORPORATION", "INDIA", "TRANSPORT", "COMMERCIAL"
+  ];
+
   const rawLines = (rawText || "").split(/\r?\n/);
   const cleanedLines: string[] = [];
   const seenLines = new Set<string>();
@@ -4883,29 +4885,34 @@ function cleanOcrTextHighQuality(rawText: string, vehicleNumber: string | null):
   }
 
   for (let line of rawLines) {
-    line = line.replace(/[^\w\s.,:;()@+_\/-]/g, " ").replace(/\s+/g, " ").trim();
-    if (!line) continue;
+    const sanitized = line.replace(/[^\w\s.,:;()@+_\/-]/g, " ").replace(/\s+/g, " ").trim();
+    if (!sanitized || sanitized.length < 4) continue;
 
-    const words = line.split(" ").filter(w => {
-      if (w.length >= 3) return true;
-      if (validShortTokens.has(w.toUpperCase())) return true;
-      if (/^\d{1,2}$/.test(w)) return true;
-      return false;
-    });
+    const upper = sanitized.toUpperCase();
 
-    if (words.length === 0) continue;
+    // Check if line contains vehicle registration
+    const isPlateLine = vehicleNumber && upper.includes(vehicleNumber);
 
-    const joined = words.join(" ");
-    if (joined.length < 4 && !validShortTokens.has(joined.toUpperCase())) continue;
+    // Check if line contains phone number or geographic coordinates
+    const isPhoneOrCoord = /\b\d{7,12}\b/.test(sanitized) || /\b\d{1,2}\.\d{4,}\b/.test(sanitized);
 
-    const letterOrNumCount = (joined.match(/[a-zA-Z0-9]/g) || []).length;
-    if (letterOrNumCount < 4 && !/^\d{2,}/.test(joined)) continue;
+    // Check if line contains recognized signage/institution/location keywords
+    let hasKnownKeyword = false;
+    for (const kw of primarySignageKeywords) {
+      if (upper.includes(kw)) {
+        hasKnownKeyword = true;
+        break;
+      }
+    }
 
-    const norm = joined.toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (seenLines.has(norm)) continue;
-    seenLines.add(norm);
-
-    cleanedLines.push(joined);
+    // Only allow verified signage lines, phone numbers, coordinates, or multi-word sentences
+    if (isPlateLine || isPhoneOrCoord || hasKnownKeyword) {
+      const norm = sanitized.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (!seenLines.has(norm)) {
+        seenLines.add(norm);
+        cleanedLines.push(sanitized);
+      }
+    }
   }
 
   return cleanedLines.length > 0
