@@ -3796,151 +3796,69 @@ async function detectVehicleFromPlate(
 
     const selectedFallback =
       fallbackCandidates[0]
-        ?.value ??
-      null;
+        ?.value ?? null;
 
     /**
-     * If the full-image OCR has strong evidence,
-     * use it instead of a weak crop hallucination.
+     * PRIMARY RESULT: Use the strongest targeted license plate crop.
+     * This ensures real license plates (e.g. MH12NW8556) are never overridden
+     * by background text or numbers from the full-image OCR.
      */
     if (
-      selectedFallback
+      bestRanked &&
+      bestRanked.ocrNormalized &&
+      validateVehicleNumber(bestRanked.ocrNormalized)
     ) {
-      const rankedValue =
-        bestRanked
-          ?.ocrNormalized ??
-        null;
-
-      if (
-        rankedValue !==
-        selectedFallback
-      ) {
-        console.log(
-          `[Plate OCR] preferring full-image OCR plate ${selectedFallback} over crop candidate ${
-            rankedValue ??
-            "null"
-          }`
-        );
-      }
-
-      return {
-        vehicleNumber:
-          selectedFallback,
-        confidenceScore:
-          Math.max(
-            70,
-            Math.min(
-              98,
-              bestRanked
-                ?.breakdown
-                .finalScore ??
-                82
-            )
-          ),
-        plateText:
-          selectedFallback,
-        plateBoundingBox: bestRanked?.candidate
-          ? {
-              x: Math.round(bestRanked.candidate.left),
-              y: Math.round(bestRanked.candidate.top),
-              width: Math.round(bestRanked.candidate.width),
-              height: Math.round(bestRanked.candidate.height),
-            }
-          : null,
-      };
-    }
-
-    /**
-     * No strong full-image result.
-     * Use the strongest crop result.
-     */
-    const best =
-      bestRanked;
-
-    if (
-      !best ||
-      !best.ocrNormalized ||
-      !validateVehicleNumber(
-        best.ocrNormalized
-      )
-    ) {
-      const fallback =
-        fallbackNumbers[0] ??
-        null;
-
-      if (fallback) {
-        console.log(
-          `[Plate OCR] FINAL VEHICLE NUMBER (fallback): ${fallback}`
-        );
-
-        return {
-          vehicleNumber:
-            fallback,
-          confidenceScore: 62,
-          plateText: fallback,
-          plateBoundingBox: null,
-        };
-      }
-
-      console.log(
-        "[Plate OCR] FINAL VEHICLE NUMBER: null"
-      );
-
-      return {
-        vehicleNumber: null,
-        confidenceScore: 0,
-        plateText: "",
-        plateBoundingBox: null,
-      };
-    }
-
-    const agreementCount =
-      best.breakdown
-        .agreementScore > 0
-        ? 2
-        : 1;
-
-    const confidenceScore =
-      Math.round(
+      const best = bestRanked;
+      const agreementCount = best.breakdown.agreementScore > 0 ? 2 : 1;
+      const confidenceScore = Math.round(
         clamp(
-          best.breakdown
-            .finalScore +
-            Math.min(
-              8,
-              agreementCount * 2
-            ) +
-            (
-              best.features
-                .yellowRatio >=
-              0.12
-                ? 4
-                : 0
-            ),
+          best.breakdown.finalScore +
+            Math.min(8, agreementCount * 2) +
+            (best.features.yellowRatio >= 0.12 ? 4 : 0),
           0,
           100
         )
       );
 
-    console.log(
-      `[Plate OCR] FINAL VEHICLE NUMBER: ${best.ocrNormalized}`
-    );
+      console.log(`[Plate OCR] FINAL VEHICLE NUMBER (from targeted crop): ${best.ocrNormalized}`);
 
-    const plateBoundingBox: PlateBoundingBox | null = best?.candidate
-      ? {
-          x: Math.round(best.candidate.left),
-          y: Math.round(best.candidate.top),
-          width: Math.round(best.candidate.width),
-          height: Math.round(best.candidate.height),
-        }
-      : null;
+      const plateBoundingBox: PlateBoundingBox | null = best?.candidate
+        ? {
+            x: Math.round(best.candidate.left),
+            y: Math.round(best.candidate.top),
+            width: Math.round(best.candidate.width),
+            height: Math.round(best.candidate.height),
+          }
+        : null;
+
+      return {
+        vehicleNumber: best.ocrNormalized,
+        confidenceScore,
+        plateText: best.ocrNormalized,
+        plateBoundingBox,
+      };
+    }
+
+    /**
+     * FALLBACK: If no targeted crop produced a valid plate, check full-image OCR.
+     */
+    if (selectedFallback && validateVehicleNumber(selectedFallback)) {
+      console.log(`[Plate OCR] FINAL VEHICLE NUMBER (full-image fallback): ${selectedFallback}`);
+      return {
+        vehicleNumber: selectedFallback,
+        confidenceScore: 65,
+        plateText: selectedFallback,
+        plateBoundingBox: null,
+      };
+    }
+
+    console.log("[Plate OCR] FINAL VEHICLE NUMBER: null");
 
     return {
-      vehicleNumber:
-        best.ocrNormalized,
-      confidenceScore,
-      plateText:
-        best.ocrNormalized,
-      plateBoundingBox,
+      vehicleNumber: null,
+      confidenceScore: 0,
+      plateText: "",
+      plateBoundingBox: null,
     };
   } finally {
     await worker.terminate();
