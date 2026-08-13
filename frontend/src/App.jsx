@@ -251,16 +251,17 @@ function App() {
     }
   };
 
-  const checkStatus = async (id) => {
+  const checkStatus = async (id, retryCount = 0) => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/images/${id}/status`
+        `${API_URL}/api/images/${id}/status`,
+        { timeout: 15000 }
       );
 
       const currentStatus = response.data.status;
 
       if (currentStatus === "PENDING" || currentStatus === "PROCESSING") {
-        setTimeout(() => checkStatus(id), 1200);
+        setTimeout(() => checkStatus(id, 0), 1200);
         return;
       }
 
@@ -284,28 +285,40 @@ function App() {
         }, 400);
       }
     } catch (err) {
-      console.error(err);
-      stopPipelineStepTicker();
-      setError("Unable to check image processing status.");
-      setStatus("");
-      setUploading(false);
+      console.warn(`[Status Check] Poll attempt ${retryCount + 1} encountered an issue:`, err.message);
+
+      // Auto-retry up to 20 times (35 seconds) to survive mobile packet drops, cold-starts, or deployments
+      if (retryCount < 20) {
+        setTimeout(() => checkStatus(id, retryCount + 1), 1800);
+      } else {
+        stopPipelineStepTicker();
+        setError("Unable to check image processing status. The server may be waking up or processing a heavy file. Please try again in a few moments.");
+        setStatus("");
+        setUploading(false);
+      }
     }
   };
 
-  const getResults = async (id) => {
+  const getResults = async (id, retryCount = 0) => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/images/${id}/results`
+        `${API_URL}/api/images/${id}/results`,
+        { timeout: 15000 }
       );
 
       setResults(response.data);
       setUploading(false);
       setStatus("");
     } catch (err) {
-      console.error(err);
-      setError("Unable to retrieve image verification results.");
-      setStatus("");
-      setUploading(false);
+      console.warn(`[Get Results] Attempt ${retryCount + 1} failed:`, err.message);
+
+      if (retryCount < 8) {
+        setTimeout(() => getResults(id, retryCount + 1), 1500);
+      } else {
+        setError("Unable to retrieve image verification results. Please try again.");
+        setStatus("");
+        setUploading(false);
+      }
     }
   };
 
