@@ -623,47 +623,57 @@ function parseRegistrationFromCompact(compact: string): string[] {
 
 function parseStackedLines(line1: string, line2: string): string[] {
   const results: string[] = [];
-  const c1 = line1.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const c2 = line2.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let c1 = line1.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  let c2 = line2.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-  for (let s = 0; s <= Math.min(3, c1.length - 2); s++) {
+  // Remove spurious noise characters inserted between 2-letter state and district (e.g. MHI12 -> MH12)
+  c1 = c1.replace(/^([A-Z]{2})[I|l1](\d{2})/, "$1$2");
+
+  for (let s = 0; s <= Math.min(4, c1.length - 2); s++) {
     const rawState = c1.slice(s, s + 2);
-    const state = correctLetterCharacters(rawState);
-    if (!isValidStateCode(state)) continue;
+    const stateCandidates = [
+      correctLetterCharacters(rawState),
+      rawState.replace(/Y$/, "H").replace(/V/, "M").replace(/^N(?=H)/, "M"),
+    ];
 
-    for (const dLen of [2, 1] as const) {
-      if (s + 2 + dLen > c1.length) continue;
-      const rawDist = c1.slice(s + 2, s + 2 + dLen);
-      const district = correctNumberCharacters(rawDist);
-      if (!/^\d{1,2}$/.test(district)) continue;
-      if (dLen === 1 && state !== "DL") continue;
-      if (!isValidStateDistrict(state, district)) continue;
+    for (const state of stateCandidates) {
+      if (!isValidStateCode(state)) continue;
 
-      const rawSeries1 = c1.slice(s + 2 + dLen, s + 2 + dLen + 2);
-      const series1 = correctLetterCharacters(rawSeries1).replace(/[^A-Z]/g, "");
+      for (const dLen of [2, 1] as const) {
+        if (s + 2 + dLen > c1.length) continue;
+        const rawDist = c1.slice(s + 2, s + 2 + dLen);
+        const district = correctNumberCharacters(rawDist);
+        if (!/^\d{1,2}$/.test(district)) continue;
+        if (dLen === 1 && state !== "DL") continue;
+        if (!isValidStateDistrict(state, district)) continue;
 
-      for (let s2 = 0; s2 <= Math.min(3, c2.length - 4); s2++) {
-        const rawSeries2 = c2.slice(0, s2);
-        const series2 = correctLetterCharacters(rawSeries2).replace(/[^A-Z]/g, "");
-        const rawNum = c2.slice(s2, s2 + 4);
-        const number = correctNumberCharacters(rawNum);
-        if (!/^\d{4}$/.test(number)) continue;
+        const rawSeries1 = c1.slice(s + 2 + dLen, s + 2 + dLen + 2);
+        const series1 = correctLetterCharacters(rawSeries1).replace(/[^A-Z]/g, "");
 
-        const seriesOptions = [
-          (series1 + series2).replace(/H/g, "W").replace(/NN/g, "NW"),
-          (series1 + series2).replace(/H/g, "W"),
-          series1 + series2,
-          (series1 || series2).replace(/H/g, "W"),
-          series1,
-          series2,
-        ];
+        // Find 4-digit number in line 2
+        const numMatch = c2.match(/(\d{4})/);
+        if (numMatch && numMatch.index !== undefined) {
+          const rawSeries2 = c2.slice(0, numMatch.index);
+          const series2 = correctLetterCharacters(rawSeries2).replace(/[^A-Z]/g, "");
+          const number = numMatch[1];
 
-        for (const series of seriesOptions) {
-          if (!/^[A-Z]{1,3}$/.test(series)) continue;
-          if (series.includes("I") || series.includes("O")) continue;
-          const fullCandidate = `${state}${district}${series}${number}`;
-          if (validateIndianVehicleNumber(fullCandidate)) {
-            results.push(fullCandidate);
+          const seriesOptions = [
+            (series1 + series2).replace(/H/g, "W").replace(/NN/g, "NW"),
+            (series1 + series2).replace(/H/g, "W"),
+            series1 + series2,
+            (series2 || series1).replace(/H/g, "W"),
+            series2,
+            series1.replace(/H/g, "W"),
+            series1,
+          ];
+
+          for (const series of seriesOptions) {
+            if (!/^[A-Z]{1,3}$/.test(series)) continue;
+            if (series.includes("I") || series.includes("O")) continue;
+            const fullCandidate = `${state}${district}${series}${number}`;
+            if (validateIndianVehicleNumber(fullCandidate)) {
+              results.push(fullCandidate);
+            }
           }
         }
       }
@@ -725,7 +735,7 @@ function parseGenericPlateCandidates(
   }
 
   /**
-   * 5. Line-by-line pairs (ONLY for dedicated stacked plate crops like MH 12 N / W 8556).
+   * 5. Stacked Line Combinations (checks adjacent and near-adjacent lines across OCR noise).
    */
   if (isPlateCrop) {
     const lines = normalized
@@ -734,9 +744,11 @@ function parseGenericPlateCandidates(
       .filter((line) => line.length >= 2);
 
     for (let i = 0; i < lines.length - 1; i++) {
-      addIfValid(`${lines[i]}${lines[i + 1]}`);
-      for (const stacked of parseStackedLines(lines[i], lines[i + 1])) {
-        candidates.add(stacked);
+      for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+        addIfValid(`${lines[i]}${lines[j]}`);
+        for (const stacked of parseStackedLines(lines[i], lines[j])) {
+          candidates.add(stacked);
+        }
       }
     }
   }
@@ -2842,14 +2854,14 @@ async function runPlateOcrForCandidate(
     );
 
   const tryTwoLine =
-    candidate.height >= 34 &&
+    candidate.height >= 14 &&
     (
       candidate.width /
         Math.max(
           1,
           candidate.height
-        ) <= 4.0 ||
-      candidate.score >= 40
+        ) <= 4.5 ||
+      candidate.score >= 25
     );
 
   let bestConfidence = 0;
@@ -3407,7 +3419,7 @@ async function detectVehicleFromPlate(
     const maxCandidatesToProcess =
       Math.min(
         prelimScored.length,
-        5
+        8
       );
 
     for (
