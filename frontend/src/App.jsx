@@ -93,6 +93,21 @@ const FileIcon = () => (
   </svg>
 );
 
+const MenuIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
 function App() {
   const [activeTab, setActiveTab] = useState("verify"); // "verify" | "audit"
   const [file, setFile] = useState(null);
@@ -104,6 +119,7 @@ function App() {
   const [uploading, setUploading] = useState(false);
   const [showBoundingBox, setShowBoundingBox] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Dynamic Interactive Pipeline State
   const [currentStep, setCurrentStep] = useState(1);
@@ -415,7 +431,7 @@ function App() {
               <span>AI Engine Online</span>
             </div>
 
-            {/* Navigation Tabs with Clean SVGs */}
+            {/* Desktop Navigation Tabs */}
             <nav className="nav-tabs">
               <button
                 className={`nav-tab ${activeTab === "verify" ? "active" : ""}`}
@@ -433,7 +449,42 @@ function App() {
               </button>
             </nav>
           </div>
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Navigation Drawer */}
+        {mobileMenuOpen && (
+          <div className="mobile-nav-drawer">
+            <button
+              className={`mobile-nav-item ${activeTab === "verify" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("verify");
+                setMobileMenuOpen(false);
+              }}
+            >
+              <CameraIcon />
+              <span>Verify Vehicle</span>
+            </button>
+            <button
+              className={`mobile-nav-item ${activeTab === "audit" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("audit");
+                setMobileMenuOpen(false);
+              }}
+            >
+              <AuditLogIcon />
+              <span>Field Audit Log</span>
+            </button>
+          </div>
+        )}
       </header>
 
       <main className="container">
