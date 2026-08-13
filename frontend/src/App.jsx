@@ -4,6 +4,95 @@ import "./App.css";
 
 const API_URL = "https://fieldsight-wwq1.onrender.com";
 
+// Professional Inline SVG Icons
+const CameraIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+    <circle cx="12" cy="13" r="4"></circle>
+  </svg>
+);
+
+const AuditLogIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+    <polyline points="14 2 14 8 20 8"></polyline>
+    <line x1="16" y1="13" x2="8" y2="13"></line>
+    <line x1="16" y1="17" x2="8" y2="17"></line>
+    <polyline points="10 9 9 9 8 9"></polyline>
+  </svg>
+);
+
+const UploadIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
+  </svg>
+);
+
+const ShieldCheckIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+    <polyline points="9 12 11 14 15 10"></polyline>
+  </svg>
+);
+
+const GovIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="21" x2="21" y2="21"></line>
+    <line x1="4" y1="10" x2="20" y2="10"></line>
+    <polygon points="12 2 2 7 22 7 12 2"></polygon>
+    <line x1="6" y1="10" x2="6" y2="21"></line>
+    <line x1="10" y1="10" x2="10" y2="21"></line>
+    <line x1="14" y1="10" x2="14" y2="21"></line>
+    <line x1="18" y1="10" x2="18" y2="21"></line>
+  </svg>
+);
+
+const DownloadIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="7 10 12 15 17 10"></polyline>
+    <line x1="12" y1="15" x2="12" y2="3"></line>
+  </svg>
+);
+
+const RefreshIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 4 23 10 17 10"></polyline>
+    <polyline points="1 20 1 14 7 14"></polyline>
+    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
+const TerminalIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="4 17 10 11 4 5"></polyline>
+    <line x1="12" y1="19" x2="20" y2="19"></line>
+  </svg>
+);
+
+const CopyIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+  </svg>
+);
+
+const FileIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+    <polyline points="13 2 13 9 20 9"></polyline>
+  </svg>
+);
+
 function App() {
   const [activeTab, setActiveTab] = useState("verify"); // "verify" | "audit"
   const [file, setFile] = useState(null);
@@ -272,19 +361,21 @@ function App() {
               <span>AI Engine Online</span>
             </div>
 
-            {/* Navigation Tabs */}
+            {/* Navigation Tabs with Clean SVGs */}
             <nav className="nav-tabs">
               <button
                 className={`nav-tab ${activeTab === "verify" ? "active" : ""}`}
                 onClick={() => setActiveTab("verify")}
               >
-                📸 <span className="tab-text">Verify Vehicle</span>
+                <CameraIcon />
+                <span className="tab-text">Verify Vehicle</span>
               </button>
               <button
                 className={`nav-tab ${activeTab === "audit" ? "active" : ""}`}
                 onClick={() => setActiveTab("audit")}
               >
-                📋 <span className="tab-text">Field Audit Log</span>
+                <AuditLogIcon />
+                <span className="tab-text">Field Audit Log</span>
               </button>
             </nav>
           </div>
@@ -352,19 +443,19 @@ function App() {
                         }}
                       >
                         <span className="bbox-label">
-                          📍 {vehicleNumber || "PLATE"}
+                          {vehicleNumber || "PLATE"}
                         </span>
                       </div>
                     )}
 
                     <div className="preview-overlay">
-                      <span>🔄 Click or drop to replace image</span>
+                      <span>Click or drop to replace image</span>
                     </div>
                   </div>
                 ) : (
                   <div className="upload-content">
                     <div className="upload-icon-circle">
-                      <span className="upload-arrow">⇪</span>
+                      <UploadIcon />
                     </div>
                     <h3>Choose or Capture a Vehicle Image</h3>
                     <p>Drag and drop image here, or browse files</p>
@@ -376,7 +467,7 @@ function App() {
               {/* Quick Camera Capture Button */}
               <div className="camera-row">
                 <label className="camera-button">
-                  <span className="camera-icon">📷</span> Capture with Device Camera
+                  <CameraIcon /> Capture with Device Camera
                   <input
                     type="file"
                     accept="image/jpeg,image/png"
@@ -390,13 +481,13 @@ function App() {
               {file && (
                 <div className="file-info-card">
                   <div className="file-meta">
-                    <span className="file-icon">📄</span>
+                    <span className="file-icon"><FileIcon /></span>
                     <div>
                       <strong>{file.name}</strong>
                       <span className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
                     </div>
                   </div>
-                  <span className="file-ready-badge">✓ Ready for AI Analysis</span>
+                  <span className="file-ready-badge">Ready for AI Analysis</span>
                 </div>
               )}
 
@@ -411,7 +502,7 @@ function App() {
                       <span className="spinner"></span> Processing Pipeline...
                     </span>
                   ) : (
-                    "⚡ Run AI Verification"
+                    "Run AI Verification"
                   )}
                 </button>
 
@@ -439,7 +530,7 @@ function App() {
 
               {error && (
                 <div className="error-message">
-                  <span className="error-icon">⚠</span>
+                  <span className="error-icon">!</span>
                   <div className="error-text">
                     <strong>Verification Alert:</strong> {error}
                   </div>
@@ -454,7 +545,7 @@ function App() {
                 <div className="results-header">
                   <div>
                     <div className="success-badge">
-                      <span className="badge-spark">✦</span> ANALYSIS COMPLETE
+                      ANALYSIS COMPLETE
                     </div>
                     <h2>Verification & Inspection Report</h2>
                     <p>Image processed and verified against MoRTH Indian standard specifications.</p>
@@ -471,7 +562,7 @@ function App() {
                 {/* Embossed Indian High Security License Plate Card */}
                 <div className="vehicle-number-card">
                   <div className="vehicle-number-title">
-                    <span className="vehicle-icon">🚗</span>
+                    <div className="vehicle-title-badge"><ShieldCheckIcon /></div>
                     <div>
                       <span>DETECTED VEHICLE REGISTRATION</span>
                       <small>Ministry of Road Transport & Highways (MoRTH) Standard</small>
@@ -487,7 +578,13 @@ function App() {
                       <span className="plate-screw bottom-right"></span>
 
                       <div className="plate-ind-strip">
-                        <span className="chakra-icon">☸</span>
+                        <span className="chakra-icon">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="2" x2="12" y2="22"></line>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                          </svg>
+                        </span>
                         <span className="ind-text">IND</span>
                       </div>
                       <div className="plate-text">
@@ -498,8 +595,8 @@ function App() {
 
                   <div className={isVehicleValid ? "valid-badge" : "invalid-badge"}>
                     {isVehicleValid
-                      ? "✓ Official Indian MoRTH Compliant Plate"
-                      : "✕ Vehicle Registration Not Validated"}
+                      ? "Official Indian MoRTH Compliant Plate"
+                      : "Vehicle Registration Not Validated"}
                   </div>
 
                   {/* Explainable AI Bounding Box Inspector */}
@@ -509,7 +606,7 @@ function App() {
                         className="chip-button"
                         onClick={() => setShowBoundingBox(!showBoundingBox)}
                       >
-                        {showBoundingBox ? "👁 Hide Bounding Box" : "👁 Show Bounding Box"}
+                        {showBoundingBox ? "Hide Bounding Box" : "Show Bounding Box"}
                       </button>
                       <span className="bbox-coord-text">
                         Localized at: X: {bbox.x}px, Y: {bbox.y}px ({bbox.width}×{bbox.height}px)
@@ -521,12 +618,11 @@ function App() {
                   {!isVehicleValid && (
                     <div className="capture-guidance-box">
                       <div className="capture-guidance-title">
-                        <span className="guidance-icon">💡</span>
                         <strong>Photo Capture Diagnostic & Guidance</strong>
                       </div>
                       {analysis?.message && (
                         <div className="diagnostic-alert-badge">
-                          <span>🔍 Diagnostic:</span> {analysis.message}
+                          <span>Diagnostic:</span> {analysis.message}
                         </div>
                       )}
                       <p className="capture-guidance-desc">
@@ -551,7 +647,7 @@ function App() {
                 {rto && (
                   <div className="rto-intelligence-card">
                     <div className="rto-header">
-                      <span className="rto-icon">🏛</span>
+                      <div className="rto-icon-box"><GovIcon /></div>
                       <div>
                         <h3>Indian RTO Jurisdiction & Vehicle Category</h3>
                         <p>Decoded from official State Transport Authority database</p>
@@ -588,34 +684,31 @@ function App() {
                   <div className="result-item">
                     <div className="result-item-header">
                       <span>Image Sharpness</span>
-                      <span className="result-mini-icon">🔍</span>
                     </div>
                     <strong className={analysis?.blurScore < 6 ? "val-good" : "val-warn"}>
                       {analysis?.blurScore ? `${analysis.blurScore} / 10` : "N/A"}
                     </strong>
                     <small>
-                      {analysis?.blurScore < 6 ? "✓ Sharp image" : "⚠ Potential blur"}
+                      {analysis?.blurScore < 6 ? "Sharp image" : "Potential blur"}
                     </small>
                   </div>
 
                   <div className="result-item">
                     <div className="result-item-header">
                       <span>Luminance & Lighting</span>
-                      <span className="result-mini-icon">💡</span>
                     </div>
                     <strong>{analysis?.brightness ? `${analysis.brightness} Lux` : "N/A"}</strong>
                     <small>
-                      {analysis?.brightness >= 40 ? "✓ Well-lit frame" : "⚠ Low-light condition"}
+                      {analysis?.brightness >= 40 ? "Well-lit frame" : "Low-light condition"}
                     </small>
                   </div>
 
                   <div className="result-item">
                     <div className="result-item-header">
                       <span>Duplicate Detection</span>
-                      <span className="result-mini-icon">🛡</span>
                     </div>
                     <strong className={analysis?.isDuplicate ? "val-warn" : "val-good"}>
-                      {analysis?.isDuplicate ? "⚠ Duplicate Detected" : "✓ Unique Binary Hash"}
+                      {analysis?.isDuplicate ? "Duplicate Detected" : "Unique Binary Hash"}
                     </strong>
                     <small>SHA-256 binary hash verified</small>
                   </div>
@@ -624,7 +717,9 @@ function App() {
                 {/* Metadata & Raw OCR Section (Cyber Terminal) */}
                 <details className="raw-ocr-details">
                   <summary>
-                    <span>💻 View Technical Metadata & Full-Image OCR Stream</span>
+                    <span className="terminal-summary-row">
+                      <TerminalIcon /> View Technical Metadata & Full-Image OCR Stream
+                    </span>
                     <span className="details-chevron">▼</span>
                   </summary>
                   <div className="metadata-box">
@@ -636,7 +731,7 @@ function App() {
                       </div>
                       <span className="terminal-title">fieldsight-engine://metadata-inspector</span>
                       <button className="copy-btn" onClick={copyOcrToClipboard}>
-                        {copied ? "✓ Copied!" : "📋 Copy OCR"}
+                        <CopyIcon /> {copied ? "Copied!" : "Copy OCR"}
                       </button>
                     </div>
 
@@ -671,14 +766,14 @@ function App() {
                   onClick={fetchRecentSubmissions}
                   disabled={auditLoading}
                 >
-                  🔄 Refresh
+                  <RefreshIcon /> Refresh
                 </button>
                 <button
                   className="primary-button export-btn"
                   onClick={exportToCSV}
                   disabled={!recentImages.length}
                 >
-                  📥 Export CSV Report
+                  <DownloadIcon /> Export CSV Report
                 </button>
               </div>
             </div>
@@ -686,7 +781,7 @@ function App() {
             {/* Filter Bar */}
             <div className="filter-bar">
               <div className="search-box-wrapper">
-                <span className="search-icon">🔍</span>
+                <span className="search-icon"><SearchIcon /></span>
                 <input
                   type="text"
                   placeholder="Search by Vehicle Number or Filename..."
@@ -724,7 +819,6 @@ function App() {
               </div>
             ) : recentImages.length === 0 ? (
               <div className="audit-empty">
-                <span className="empty-icon">📭</span>
                 <h3>No verification records found</h3>
                 <p>Upload a vehicle image in the Verify tab to generate verification ledger entries.</p>
               </div>
