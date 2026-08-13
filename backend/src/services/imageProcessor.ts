@@ -524,73 +524,84 @@ function parseRegistrationFromIndianOnly(compact: string): string[] {
   const candidates = new Set<string>();
   const source = compact.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-  if (source.length < 7 || source.length > 13) {
+  if (source.length < 7 || source.length > 15) {
     return [];
   }
 
   for (
     let start = 0;
-    start <= Math.min(3, source.length - 7);
+    start <= Math.min(4, source.length - 7);
     start++
   ) {
     for (const districtLen of [2, 1] as const) {
-      for (const seriesLen of [2, 1, 3] as const) {
+      for (const seriesLen of [1, 2, 3] as const) {
         const expectedLen = 2 + districtLen + seriesLen + 4;
         if (start + expectedLen > source.length) {
           continue;
         }
 
         const rawState = source.slice(start, start + 2);
-        const rawDistrict = source.slice(
-          start + 2,
-          start + 2 + districtLen
-        );
-        const rawSeries = source.slice(
-          start + 2 + districtLen,
-          start + 2 + districtLen + seriesLen
-        );
-        const rawNumber = source.slice(
-          start + 2 + districtLen + seriesLen,
-          start + expectedLen
-        );
-
-        const state = correctLetterCharacters(rawState);
-        if (!isValidStateCode(state)) {
-          continue;
-        }
-
-        const district = correctNumberCharacters(rawDistrict);
-        if (!/^\d{1,2}$/.test(district)) {
-          continue;
-        }
-        if (districtLen === 1 && state !== "DL") {
-          continue;
-        }
-
-        const seriesOptions = [
-          correctLetterCharacters(rawSeries),
-          correctLetterCharacters(rawSeries).replace(/H/g, "W"),
+        const stateCandidates = [
+          correctLetterCharacters(rawState),
+          rawState.replace(/Y$/, "H").replace(/V/, "M").replace(/^N(?=H)/, "M"),
+          rawState.replace(/M(?=H)/, "M"),
         ];
 
-        const number = correctNumberCharacters(rawNumber);
-        if (!/^\d{4}$/.test(number)) {
-          continue;
-        }
-
-        for (const series of seriesOptions) {
-          if (!/^[A-Z]{1,3}$/.test(series)) {
-            continue;
-          }
-          if (
-            series.includes("I") ||
-            series.includes("O")
-          ) {
+        for (const state of stateCandidates) {
+          if (!isValidStateCode(state)) {
             continue;
           }
 
-          const fullCandidate = `${state}${district}${series}${number}`;
-          if (validateIndianVehicleNumber(fullCandidate)) {
-            candidates.add(fullCandidate);
+          const rawDistrict = source.slice(
+            start + 2,
+            start + 2 + districtLen
+          );
+          const rawSeries = source.slice(
+            start + 2 + districtLen,
+            start + 2 + districtLen + seriesLen
+          );
+          const rawNumber = source.slice(
+            start + 2 + districtLen + seriesLen,
+            start + expectedLen
+          );
+
+          const district = correctNumberCharacters(rawDistrict);
+          if (!/^\d{1,2}$/.test(district)) {
+            continue;
+          }
+          if (districtLen === 1 && state !== "DL") {
+            continue;
+          }
+          if (!isValidStateDistrict(state, district)) {
+            continue;
+          }
+
+          const seriesOptions = [
+            correctLetterCharacters(rawSeries),
+            correctLetterCharacters(rawSeries).replace(/H/g, "W"),
+            correctLetterCharacters(rawSeries).replace(/NN/g, "NW"),
+          ];
+
+          const number = correctNumberCharacters(rawNumber);
+          if (!/^\d{4}$/.test(number)) {
+            continue;
+          }
+
+          for (const series of seriesOptions) {
+            if (!/^[A-Z]{1,3}$/.test(series)) {
+              continue;
+            }
+            if (
+              series.includes("I") ||
+              series.includes("O")
+            ) {
+              continue;
+            }
+
+            const fullCandidate = `${state}${district}${series}${number}`;
+            if (validateIndianVehicleNumber(fullCandidate)) {
+              candidates.add(fullCandidate);
+            }
           }
         }
       }
@@ -720,7 +731,7 @@ function parseGenericPlateCandidates(
     const lines = normalized
       .split(/\r?\n/)
       .map((line) => compactText(line))
-      .filter(Boolean);
+      .filter((line) => line.length >= 2);
 
     for (let i = 0; i < lines.length - 1; i++) {
       addIfValid(`${lines[i]}${lines[i + 1]}`);
@@ -2883,7 +2894,7 @@ async function runPlateOcrForCandidate(
     )
   ) {
     for (
-      const psm of [PSM.SINGLE_LINE, PSM.SINGLE_BLOCK]
+      const psm of [PSM.SINGLE_BLOCK, PSM.SPARSE_TEXT]
     ) {
       const ocr =
         await runPlateOcrPass(
