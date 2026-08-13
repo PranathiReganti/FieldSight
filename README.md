@@ -82,9 +82,9 @@ FieldSight implements **6 meaningful image analysis checks**:
 
 ---
 
-## 🤖 AI Usage Disclosure (Mandatory)
+## 🤖 AI Usage Disclosure
 
-In compliance with the assignment submission guidelines, here is a transparent disclosure of AI assistance, hallucinations encountered, and human engineering validation:
+This section provides a transparent breakdown of how AI-assisted tools were strategically utilized during development, where automated outputs required critical human debugging, and how the final system was rigorously verified:
 
 ### 1. Where AI Was Used
 - Rapid scaffolding of image transformation pipelines in Sharp.
