@@ -256,64 +256,14 @@ body {
   margin-bottom: 36px;
 }
 
-.enterprise-feature-strip {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  background: #ffffff;
-  border: 1px solid rgba(203, 213, 225, 0.9);
-  padding: 6px 14px 6px 8px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  margin-bottom: 20px;
-  transition: all 0.2s ease;
-}
-
-.enterprise-feature-strip:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
-}
-
-.feature-strip-badge {
-  background: #0f172a;
-  color: #ffffff;
-  padding: 4px 8px;
-  border-radius: 5px;
+.hero-eyebrow {
+  display: inline-block;
   font-size: 11px;
   font-weight: 800;
-  font-family: 'JetBrains Mono', monospace;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  letter-spacing: 0.4px;
-}
-
-.feature-strip-badge svg {
-  stroke: #38bdf8;
-  display: block;
-}
-
-.feature-strip-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-}
-
-.feature-strip-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--success);
-  background: var(--success-light);
-  padding: 3px 8px;
-  border-radius: 5px;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.audit-strip {
-  margin-bottom: 12px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 14px;
 }
 
 @keyframes pulseBlue {

@@ -441,17 +441,7 @@ function App() {
           <>
             {/* Hero Section */}
             <section className="hero">
-              <div className="enterprise-feature-strip">
-                <div className="feature-strip-badge">
-                  <ShieldCheckIcon />
-                  <span>MoRTH & CMVR 1989</span>
-                </div>
-                <span className="feature-strip-text">Indian National Transport Standard</span>
-                <div className="feature-strip-status">
-                  <span className="live-pulse-green"></span>
-                  <span>28 States & 8 UTs Covered</span>
-                </div>
-              </div>
+              <span className="hero-eyebrow">AI-POWERED VEHICLE VERIFICATION PLATFORM</span>
 
               <h2>
                 Verify Vehicle Registrations
@@ -852,13 +842,7 @@ function App() {
           <section className="audit-card">
             <div className="audit-header">
               <div>
-                <div className="enterprise-feature-strip audit-strip">
-                  <div className="feature-strip-badge">
-                    <GovIcon />
-                    <span>AUDIT VAULT</span>
-                  </div>
-                  <span className="feature-strip-text">PostgreSQL Verification Ledger</span>
-                </div>
+                <span className="hero-eyebrow">HISTORICAL AUDIT VAULT</span>
                 <h2>Field Verification Submissions</h2>
                 <p>Complete historical ledger of all processed vehicle verifications and quality metrics</p>
               </div>
