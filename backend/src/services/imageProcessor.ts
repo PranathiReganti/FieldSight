@@ -357,7 +357,7 @@ function isValidStateDistrict(state: string, district: string): boolean {
   return districtNum <= max;
 }
 
-function validateIndianVehicleNumber(value: string): boolean {
+export function validateIndianVehicleNumber(value: string): boolean {
   const normalized = compactText(value);
   const match = normalized.match(REGISTRATION_PATTERN);
 
@@ -391,7 +391,7 @@ function validateIndianVehicleNumber(value: string): boolean {
   return true;
 }
 
-function validateVehicleNumber(value: string): boolean {
+export function validateVehicleNumber(value: string): boolean {
   const normalized = compactText(value);
 
   return validateIndianVehicleNumber(normalized);
