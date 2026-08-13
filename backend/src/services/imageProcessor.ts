@@ -6,11 +6,22 @@ import { createWorker, PSM } from "tesseract.js";
 import path from "path";
 
 async function initTesseractWorker() {
-  const localLangPath = path.resolve(process.cwd());
-  const options = fsSync.existsSync(path.join(localLangPath, "eng.traineddata"))
-    ? { langPath: localLangPath }
-    : undefined;
+  const possiblePaths = [
+    path.resolve(process.cwd()),
+    path.resolve(process.cwd(), "backend"),
+    path.resolve(__dirname, ".."),
+    path.resolve(__dirname, "../.."),
+  ];
 
+  let localLangPath: string | undefined = undefined;
+  for (const p of possiblePaths) {
+    if (fsSync.existsSync(path.join(p, "eng.traineddata"))) {
+      localLangPath = p;
+      break;
+    }
+  }
+
+  const options = localLangPath ? { langPath: localLangPath } : undefined;
   return await createWorker("eng", 1, options);
 }
 
