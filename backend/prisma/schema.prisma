@@ -34,6 +34,12 @@ model Image {
   vehicleNumberValid  Boolean?
   confidenceScore     Float?
 
+  plateX              Float?
+  plateY              Float?
+  plateWidth          Float?
+  plateHeight         Float?
+  rtoDetails          String?
+
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
 } 

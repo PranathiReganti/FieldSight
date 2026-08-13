@@ -1,4 +1,5 @@
 import { processImage, validateIndianVehicleNumber } from "../src/services/imageProcessor.js";
+import { decodeRTO } from "../src/services/rtoDecoder.js";
 import path from "path";
 import fs from "fs";
 
@@ -40,9 +41,30 @@ async function runTestSuite() {
   assert(validateIndianVehicleNumber("RANDOMTEXT") === false, "Rejects random non-plate text");
 
   // -----------------------------------------------------------------
-  // 2. End-to-End Image Processing Benchmark Tests
+  // 2. Indian RTO Location & Category Decoding Tests
   // -----------------------------------------------------------------
-  console.log("\n[SUITE 2] End-to-End Image Processing Benchmarks");
+  console.log("\n[SUITE 2] Indian RTO Location & Category Decoder");
+
+  const rto1 = decodeRTO("MH12NW8556");
+  assert(rto1 !== null, "Decoded MH12NW8556 RTO");
+  assert(rto1?.stateName === "Maharashtra", `Correct state: ${rto1?.stateName}`);
+  assert(rto1?.rtoOffice.includes("Pune"), `Correct RTO office: ${rto1?.rtoOffice}`);
+  assert(rto1?.vehicleCategory.includes("Commercial"), `Correct category: ${rto1?.vehicleCategory}`);
+
+  const rto2 = decodeRTO("KA02MP9657");
+  assert(rto2 !== null, "Decoded KA02MP9657 RTO");
+  assert(rto2?.stateName === "Karnataka", `Correct state: ${rto2?.stateName}`);
+  assert(rto2?.rtoOffice.includes("Bangalore West"), `Correct RTO office: ${rto2?.rtoOffice}`);
+
+  const rto3 = decodeRTO("TN05BT5754");
+  assert(rto3 !== null, "Decoded TN05BT5754 RTO");
+  assert(rto3?.stateName === "Tamil Nadu", `Correct state: ${rto3?.stateName}`);
+  assert(rto3?.rtoOffice.includes("Chennai North"), `Correct RTO office: ${rto3?.rtoOffice}`);
+
+  // -----------------------------------------------------------------
+  // 3. End-to-End Image Processing Benchmark Tests
+  // -----------------------------------------------------------------
+  console.log("\n[SUITE 3] End-to-End Image Processing Benchmarks");
 
   const hondaPath = path.resolve("./uploads/1786543227769-car-ind-number-plate.jpeg");
   if (fs.existsSync(hondaPath)) {

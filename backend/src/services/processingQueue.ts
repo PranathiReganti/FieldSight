@@ -1,5 +1,6 @@
 import { prisma } from "../db.js";
 import { processImage } from "./imageProcessor.js";
+import { decodeRTO } from "./rtoDecoder.js";
 
 const queue: string[] = [];
 let isProcessing = false;
@@ -67,6 +68,9 @@ async function processNext() {
       Math.min(100, Math.round(analysis.confidenceScore))
     );
 
+    // Decode RTO Information
+    const rtoInfo = decodeRTO(analysis.vehicleNumber);
+
     // Store all analysis results
     await prisma.image.update({
       where: {
@@ -81,6 +85,11 @@ async function processNext() {
         vehicleNumber: analysis.vehicleNumber,
         vehicleNumberValid: analysis.vehicleNumberValid,
         confidenceScore,
+        plateX: analysis.plateBoundingBox?.x ?? null,
+        plateY: analysis.plateBoundingBox?.y ?? null,
+        plateWidth: analysis.plateBoundingBox?.width ?? null,
+        plateHeight: analysis.plateBoundingBox?.height ?? null,
+        rtoDetails: rtoInfo ? JSON.stringify(rtoInfo) : null,
         status: "COMPLETED",
       },
     });

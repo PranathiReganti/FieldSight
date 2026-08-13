@@ -178,6 +178,101 @@ app.get("/api/images/:id/status", async (req, res) => {
   }
 });
 
+// Image file serving endpoint
+app.get("/api/images/:id/file", async (req, res) => {
+  try {
+    const image = await prisma.image.findUnique({
+      where: {
+        id: req.params.id,
+      },
+      select: {
+        storedPath: true,
+        mimeType: true,
+      },
+    });
+
+    if (!image || !fs.existsSync(image.storedPath)) {
+      return res.status(404).json({
+        error: "Image file not found",
+      });
+    }
+
+    res.setHeader("Content-Type", image.mimeType);
+    return res.sendFile(path.resolve(image.storedPath));
+  } catch (error) {
+    console.error("File retrieval error:", error);
+    return res.status(500).json({ error: "Failed to retrieve image file" });
+  }
+});
+
+// Recent submissions / audit log endpoint
+app.get("/api/images/recent", async (req, res) => {
+  try {
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string, 10) || 15));
+    const search = ((req.query.search as string) || "").trim();
+    const statusFilter = ((req.query.status as string) || "").trim();
+
+    const where: Record<string, unknown> = {};
+
+    if (statusFilter && ["PENDING", "PROCESSING", "COMPLETED", "FAILED"].includes(statusFilter)) {
+      where.status = statusFilter;
+    }
+
+    if (search) {
+      where.OR = [
+        { vehicleNumber: { contains: search, mode: "insensitive" } },
+        { originalName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const images = await prisma.image.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: limit,
+      select: {
+        id: true,
+        originalName: true,
+        sizeBytes: true,
+        status: true,
+        blurScore: true,
+        brightness: true,
+        vehicleNumber: true,
+        vehicleNumberValid: true,
+        isDuplicate: true,
+        confidenceScore: true,
+        rtoDetails: true,
+        createdAt: true,
+      },
+    });
+
+    const parsedImages = images.map((img) => {
+      let rtoParsed = null;
+      if (img.rtoDetails) {
+        try {
+          rtoParsed = JSON.parse(img.rtoDetails);
+        } catch {
+          rtoParsed = null;
+        }
+      }
+
+      return {
+        ...img,
+        rtoDetails: rtoParsed,
+      };
+    });
+
+    return res.status(200).json({
+      count: parsedImages.length,
+      images: parsedImages,
+    });
+  } catch (error) {
+    console.error("Recent submissions error:", error);
+    return res.status(500).json({ error: "Failed to fetch recent submissions" });
+  }
+});
+
 // Image processing results
 app.get("/api/images/:id/results", async (req, res) => {
   try {
@@ -198,6 +293,11 @@ app.get("/api/images/:id/results", async (req, res) => {
         vehicleNumberValid: true,
         isDuplicate: true,
         confidenceScore: true,
+        plateX: true,
+        plateY: true,
+        plateWidth: true,
+        plateHeight: true,
+        rtoDetails: true,
         failureReason: true,
         createdAt: true,
         updatedAt: true,
@@ -226,6 +326,28 @@ app.get("/api/images/:id/results", async (req, res) => {
       });
     }
 
+    let rtoInfo = null;
+    if (image.rtoDetails) {
+      try {
+        rtoInfo = JSON.parse(image.rtoDetails);
+      } catch {
+        rtoInfo = null;
+      }
+    }
+
+    const plateBoundingBox =
+      image.plateX !== null &&
+      image.plateY !== null &&
+      image.plateWidth !== null &&
+      image.plateHeight !== null
+        ? {
+            x: image.plateX,
+            y: image.plateY,
+            width: image.plateWidth,
+            height: image.plateHeight,
+          }
+        : null;
+
     return res.status(200).json({
       processingId: image.id,
       status: image.status,
@@ -238,6 +360,8 @@ app.get("/api/images/:id/results", async (req, res) => {
         vehicleNumberValid: image.vehicleNumberValid,
         isDuplicate: image.isDuplicate,
         confidenceScore: image.confidenceScore,
+        plateBoundingBox,
+        rtoDetails: rtoInfo,
       },
 
       metadata: {

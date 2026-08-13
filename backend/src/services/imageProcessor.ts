@@ -18,6 +18,13 @@ async function initTesseractWorker() {
  * Result returned to the processing queue.
  * These fields match the fields used by the FieldSight Prisma Image model.
  */
+export interface PlateBoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface ImageAnalysis {
   success: boolean;
   width: number;
@@ -33,6 +40,7 @@ export interface ImageAnalysis {
   vehicleNumberValid: boolean;
   confidenceScore: number;
   message: string;
+  plateBoundingBox?: PlateBoundingBox | null;
 }
 
 interface OCRWord {
@@ -3199,6 +3207,7 @@ async function detectVehicleFromPlate(
   vehicleNumber: string | null;
   confidenceScore: number;
   plateText: string;
+  plateBoundingBox: PlateBoundingBox | null;
 }> {
   /**
    * First check the full-image OCR.
@@ -3578,6 +3587,7 @@ async function detectVehicleFromPlate(
             fallback,
           confidenceScore: 62,
           plateText: fallback,
+          plateBoundingBox: null,
         };
       }
 
@@ -3589,6 +3599,7 @@ async function detectVehicleFromPlate(
         vehicleNumber: null,
         confidenceScore: 0,
         plateText: "",
+        plateBoundingBox: null,
       };
     }
 
@@ -3785,6 +3796,14 @@ async function detectVehicleFromPlate(
           ),
         plateText:
           selectedFallback,
+        plateBoundingBox: bestRanked?.candidate
+          ? {
+              x: Math.round(bestRanked.candidate.left),
+              y: Math.round(bestRanked.candidate.top),
+              width: Math.round(bestRanked.candidate.width),
+              height: Math.round(bestRanked.candidate.height),
+            }
+          : null,
       };
     }
 
@@ -3816,6 +3835,7 @@ async function detectVehicleFromPlate(
             fallback,
           confidenceScore: 62,
           plateText: fallback,
+          plateBoundingBox: null,
         };
       }
 
@@ -3827,6 +3847,7 @@ async function detectVehicleFromPlate(
         vehicleNumber: null,
         confidenceScore: 0,
         plateText: "",
+        plateBoundingBox: null,
       };
     }
 
@@ -3861,12 +3882,22 @@ async function detectVehicleFromPlate(
       `[Plate OCR] FINAL VEHICLE NUMBER: ${best.ocrNormalized}`
     );
 
+    const plateBoundingBox: PlateBoundingBox | null = best?.candidate
+      ? {
+          x: Math.round(best.candidate.left),
+          y: Math.round(best.candidate.top),
+          width: Math.round(best.candidate.width),
+          height: Math.round(best.candidate.height),
+        }
+      : null;
+
     return {
       vehicleNumber:
         best.ocrNormalized,
       confidenceScore,
       plateText:
         best.ocrNormalized,
+      plateBoundingBox,
     };
   } finally {
     await worker.terminate();
@@ -4967,6 +4998,8 @@ export async function processImage(
     vehicleNumberValid,
 
     confidenceScore,
+
+    plateBoundingBox: plateResult.plateBoundingBox ?? null,
 
     message,
   };
