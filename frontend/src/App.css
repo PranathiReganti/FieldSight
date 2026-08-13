@@ -712,12 +712,21 @@ body {
   font-size: 13px;
 }
 
-.capture-guidance-list {
-  margin: 0;
-  padding-left: 18px;
-  color: #4a5568;
-  font-size: 12.5px;
-  line-height: 1.6;
+.diagnostic-alert-badge {
+  margin: 10px 0 12px;
+  padding: 10px 14px;
+  background: #fff5f5;
+  border-left: 3px solid #e53e3e;
+  border-radius: 6px;
+  color: #742a2a;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.diagnostic-alert-badge span {
+  font-weight: 700;
+  color: #9b2c2c;
 }
 
 /* Indian RTO Intelligence Card */

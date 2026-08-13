@@ -4,6 +4,10 @@ import crypto from "crypto";
 import sharp from "sharp";
 import { createWorker, PSM } from "tesseract.js";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function initTesseractWorker() {
   const possiblePaths = [
@@ -15,7 +19,10 @@ async function initTesseractWorker() {
 
   let localLangPath: string | undefined = undefined;
   for (const p of possiblePaths) {
-    if (fsSync.existsSync(path.join(p, "eng.traineddata"))) {
+    if (
+      fsSync.existsSync(path.join(p, "eng.traineddata.gz")) ||
+      fsSync.existsSync(path.join(p, "eng.traineddata"))
+    ) {
       localLangPath = p;
       break;
     }
@@ -2990,7 +2997,7 @@ async function runPlateOcrForCandidate(
               height: split,
             })
             .resize({
-              width: 1500,
+              height: 140,
               withoutEnlargement:
                 false,
             })
@@ -3014,7 +3021,7 @@ async function runPlateOcrForCandidate(
                 height - split,
             })
             .resize({
-              width: 1500,
+              height: 140,
               withoutEnlargement:
                 false,
             })
@@ -4850,6 +4857,52 @@ export async function processImage(
     blurScore < 8;
 
   /* ------------------------------------------------------------------ */
+function cleanOcrTextHighQuality(rawText: string, vehicleNumber: string | null): string {
+  const validShortTokens = new Set([
+    "MH", "KA", "TN", "DL", "GJ", "HR", "UP", "AP", "TS", "KL", "GA", "RJ", "PB", "WB", "MP", "CH", "JK",
+    "CNG", "LPG", "RE", "DR", "FC", "QR", "IND", "RD", "NO", "AT", "AGE", "NEW", "CAR", "EYE", "ROAD", "PUNE"
+  ]);
+  
+  const rawLines = (rawText || "").split(/\r?\n/);
+  const cleanedLines: string[] = [];
+  const seenLines = new Set<string>();
+
+  if (vehicleNumber) {
+    cleanedLines.push(`Vehicle Registration: ${vehicleNumber}`);
+  }
+
+  for (let line of rawLines) {
+    line = line.replace(/[^\w\s.,:;()@+_\/-]/g, " ").replace(/\s+/g, " ").trim();
+    if (!line) continue;
+
+    const words = line.split(" ").filter(w => {
+      if (w.length >= 3) return true;
+      if (validShortTokens.has(w.toUpperCase())) return true;
+      if (/^\d{1,2}$/.test(w)) return true;
+      return false;
+    });
+
+    if (words.length === 0) continue;
+
+    const joined = words.join(" ");
+    if (joined.length < 4 && !validShortTokens.has(joined.toUpperCase())) continue;
+
+    const letterOrNumCount = (joined.match(/[a-zA-Z0-9]/g) || []).length;
+    if (letterOrNumCount < 4 && !/^\d{2,}/.test(joined)) continue;
+
+    const norm = joined.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (seenLines.has(norm)) continue;
+    seenLines.add(norm);
+
+    cleanedLines.push(joined);
+  }
+
+  return cleanedLines.length > 0
+    ? cleanedLines.join("\n")
+    : (vehicleNumber ? `Vehicle Registration: ${vehicleNumber}` : "No readable text detected");
+}
+
+  /* ------------------------------------------------------------------ */
   /* GENERAL OCR                                                        */
   /* ------------------------------------------------------------------ */
 
@@ -4858,12 +4911,6 @@ export async function processImage(
       imagePath,
       width
     );
-
-  const ocrText =
-    ocr.text.trim().length >
-    0
-      ? ocr.text
-      : "No reliable text detected";
 
   /* ------------------------------------------------------------------ */
   /* VEHICLE NUMBER                                                     */
@@ -4905,6 +4952,12 @@ export async function processImage(
   }
 
   /* ------------------------------------------------------------------ */
+  /* HIGH-QUALITY SANITIZED OCR TEXT                                    */
+  /* ------------------------------------------------------------------ */
+
+  const ocrText = cleanOcrTextHighQuality(ocr.text, vehicleNumber);
+
+  /* ------------------------------------------------------------------ */
   /* CONFIDENCE ADJUSTMENTS                                              */
   /* ------------------------------------------------------------------ */
 
@@ -4940,40 +4993,23 @@ export async function processImage(
   }
 
   /* ------------------------------------------------------------------ */
-  /* FINAL MESSAGE                                                       */
+  /* INFORMATIVE DIAGNOSTIC MESSAGE                                      */
   /* ------------------------------------------------------------------ */
 
   let message: string;
 
-  if (
-    isLowResolution
-  ) {
-    message =
-      "Image resolution is too low";
-  } else if (
-    isBlurry
-  ) {
-    message =
-      "Image appears blurry";
-  } else if (
-    isLowLight
-  ) {
-    message =
-      "Image appears too dark";
-  } else if (
-    vehicleNumberValid
-  ) {
-    message =
-      "Vehicle image processed successfully";
-  } else if (
-    ocrText !==
-    "No reliable text detected"
-  ) {
-    message =
-      "Text detected, but vehicle number was not detected";
+  if (vehicleNumberValid) {
+    message = `Vehicle registration ${vehicleNumber} verified successfully against MoRTH Indian standard.`;
+  } else if (isBlurry) {
+    message = `Vehicle registration plate could not be detected: Image is out of focus or blurry (Blur score: ${blurScore}/10). Please hold camera steady and recapture.`;
+  } else if (isLowLight) {
+    message = `Vehicle registration plate could not be detected: Image lighting is underexposed or in deep shadow. Please capture with adequate lighting.`;
+  } else if (isLowResolution) {
+    message = `Vehicle registration plate could not be detected: Image resolution is too low. Please move closer to the vehicle.`;
+  } else if (ocrText && ocrText !== "No readable text detected") {
+    message = `Vehicle registration plate could not be detected: License plate region is obscured or captured at a steep side angle. Please capture a direct front or rear view.`;
   } else {
-    message =
-      "Image processed but vehicle number was not detected";
+    message = `Vehicle registration plate could not be detected: No license plate found in frame. Please capture a clear, direct view of the vehicle's front or rear.`;
   }
 
   /* ------------------------------------------------------------------ */

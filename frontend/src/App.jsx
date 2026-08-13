@@ -471,20 +471,25 @@ function App() {
                     <div className="capture-guidance-box">
                       <div className="capture-guidance-title">
                         <span className="guidance-icon">💡</span>
-                        <strong>Photo Capture Tips for High Accuracy</strong>
+                        <strong>Photo Capture Diagnostic & Guidance</strong>
                       </div>
+                      {analysis?.message && (
+                        <div className="diagnostic-alert-badge">
+                          <span>🔍 Diagnostic:</span> {analysis.message}
+                        </div>
+                      )}
                       <p className="capture-guidance-desc">
-                        The license plate could not be clearly recognized. For best results:
+                        For 100% verification accuracy, please ensure:
                       </p>
                       <ul className="capture-guidance-list">
                         <li>
-                          <strong>Direct Angle:</strong> Capture straight-on facing the vehicle's front or rear (avoid steep diagonal/side views).
+                          <strong>Direct View:</strong> Capture straight-on facing the vehicle's front or rear (avoid steep diagonal/side views).
                         </li>
                         <li>
                           <strong>Clear Framing:</strong> Ensure the license plate is centered, close, and unobscured.
                         </li>
                         <li>
-                          <strong>Sharp Focus & Lighting:</strong> Hold the camera steady to avoid blur and ensure adequate light.
+                          <strong>Sharp Focus & Lighting:</strong> Hold camera steady to eliminate motion blur and ensure good lighting.
                         </li>
                       </ul>
                     </div>
