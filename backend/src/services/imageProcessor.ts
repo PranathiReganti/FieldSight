@@ -686,7 +686,7 @@ function parseStackedLines(line1: string, line2: string): string[] {
   return results;
 }
 
-function parseGenericPlateCandidates(
+export function parseGenericPlateCandidates(
   text: string,
   isPlateCrop = false
 ): string[] {
@@ -1080,7 +1080,7 @@ async function readRawImage(
   channels: number;
 }> {
   const source =
-    sharp(imagePath).removeAlpha();
+    sharp(imagePath).rotate().removeAlpha();
 
   const resized =
     width && height
@@ -1599,6 +1599,7 @@ async function analyzeCandidateFeatures(
 
   const { data, info } =
     await sharp(imagePath)
+      .rotate()
       .extract({
         left,
         top,
@@ -1651,6 +1652,7 @@ async function analyzeCandidateFeatures(
 
   const grayBuffer =
     await sharp(imagePath)
+      .rotate()
       .extract({
         left,
         top,
@@ -1840,8 +1842,10 @@ function scoreComponent(
     source === "yellow"
       ? 0.35
       : source === "white"
-        ? 0.08
-        : 0;
+        ? 0.12
+        : source === "black"
+          ? 0.18
+          : 0;
 
   return Math.round(
     10 +
@@ -1921,6 +1925,7 @@ async function detectYellowPlateCandidates(
   ): {
     yellow: boolean;
     white: boolean;
+    black: boolean;
   } => {
     const offset =
       index *
@@ -1948,13 +1953,17 @@ async function detectYellowPlateCandidates(
       white:
         hsv.s <= 0.28 &&
         hsv.v >= 0.65,
+
+      black:
+        hsv.v <= 0.35 &&
+        hsv.s <= 0.45,
     };
   };
 
   const floodFill = (
     startX: number,
     startY: number,
-    mode: "yellow" | "white"
+    mode: "yellow" | "white" | "black"
   ) => {
     let head = 0;
     let tail = 0;
@@ -2047,7 +2056,9 @@ async function detectYellowPlateCandidates(
           (mode === "yellow" &&
             !next.yellow) ||
           (mode === "white" &&
-            !next.white)
+            !next.white) ||
+          (mode === "black" &&
+            !next.black)
         ) {
           continue;
         }
@@ -2155,6 +2166,14 @@ async function detectYellowPlateCandidates(
           x,
           y,
           "white"
+        );
+      } else if (
+        current.black
+      ) {
+        floodFill(
+          x,
+          y,
+          "black"
         );
       }
     }
@@ -2586,6 +2605,7 @@ async function cropAndPreparePlate(
       : 1200;
 
   return sharp(imagePath)
+    .rotate()
     .extract({
       left,
       top,
@@ -2767,6 +2787,21 @@ async function buildPlateVariants(
   });
 
   variants.push({
+    label: "inverted",
+    buffer:
+      await sharp(buffer)
+        .removeAlpha()
+        .grayscale()
+        .negate()
+        .normalize()
+        .sharpen({
+          sigma: 1.2,
+        })
+        .png()
+        .toBuffer(),
+  });
+
+  variants.push({
     label: "otsu",
     buffer:
       await sharp(buffer)
@@ -2904,7 +2939,7 @@ async function runPlateOcrForCandidate(
   for (
     const variant of variants.slice(
       0,
-      2
+      3
     )
   ) {
     for (
@@ -3308,7 +3343,7 @@ async function detectVehicleFromPlate(
 
     fallbackCounts.set(
       key,
-      count
+      Math.max(1, count)
     );
   }
 
@@ -4459,6 +4494,7 @@ async function performOCR(
           await sharp(
             imagePath
           )
+            .rotate()
             .resize({
               width:
                 targetWidth,
@@ -4545,8 +4581,23 @@ async function performOCR(
          */
         const blocks =
           (
-            result.data as unknown as {
-              blocks?: unknown;
+            result.data as {
+              blocks?: Array<{
+                paragraphs?: Array<{
+                  lines?: Array<{
+                    words?: Array<{
+                      text?: string;
+                      confidence?: number;
+                      bbox?: {
+                        x0?: number;
+                        y0?: number;
+                        x1?: number;
+                        y1?: number;
+                      };
+                    }>;
+                  }>;
+                }>;
+              }>;
             }
           ).blocks;
 
@@ -4667,7 +4718,9 @@ export async function processImage(
   const metadata =
     await sharp(
       imagePath
-    ).metadata();
+    )
+      .rotate()
+      .metadata();
 
   const width =
     metadata.width ?? 0;
@@ -4707,6 +4760,7 @@ export async function processImage(
     await sharp(
       imagePath
     )
+      .rotate()
       .grayscale()
       .raw()
       .toBuffer({
