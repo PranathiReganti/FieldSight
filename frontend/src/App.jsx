@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
 
@@ -105,11 +105,63 @@ function App() {
   const [showBoundingBox, setShowBoundingBox] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Dynamic Interactive Pipeline State
+  const [currentStep, setCurrentStep] = useState(1);
+  const [progressPercent, setProgressPercent] = useState(15);
+  const [stepMessage, setStepMessage] = useState("");
+  const stepTimerRef = useRef(null);
+
   // Audit Log State
   const [recentImages, setRecentImages] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const startPipelineStepTicker = () => {
+    setCurrentStep(1);
+    setProgressPercent(15);
+    setStepMessage("Ingesting vehicle image & computing blur and luminance metrics...");
+
+    let elapsedSeconds = 0;
+    if (stepTimerRef.current) clearInterval(stepTimerRef.current);
+
+    stepTimerRef.current = setInterval(() => {
+      elapsedSeconds += 1.2;
+
+      if (elapsedSeconds < 2) {
+        setCurrentStep(1);
+        setProgressPercent(25);
+        setStepMessage("Analyzing image quality, checking lighting & verifying duplicate SHA-256 hash...");
+      } else if (elapsedSeconds < 4) {
+        setCurrentStep(2);
+        setProgressPercent(50);
+        setStepMessage("AI is scanning vehicle contours and localizing license plate candidates...");
+      } else if (elapsedSeconds < 6) {
+        setCurrentStep(3);
+        setProgressPercent(75);
+        setStepMessage("AI is extracting the number plate & running neural character recognition (OCR)...");
+      } else if (elapsedSeconds < 8) {
+        setCurrentStep(4);
+        setProgressPercent(90);
+        setStepMessage("Validating plate against MoRTH Indian standard & resolving RTO jurisdiction...");
+      } else {
+        setCurrentStep(4);
+        setProgressPercent(96);
+        setStepMessage("Hold for a moment, we are almost done! Compiling your inspection report...");
+      }
+    }, 1200);
+  };
+
+  const stopPipelineStepTicker = () => {
+    if (stepTimerRef.current) {
+      clearInterval(stepTimerRef.current);
+      stepTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => stopPipelineStepTicker();
+  }, []);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files?.[0];
@@ -118,6 +170,7 @@ function App() {
     setResults(null);
     setStatus("");
     setProcessingId("");
+    stopPipelineStepTicker();
 
     if (!selectedFile) {
       setFile(null);
@@ -155,6 +208,7 @@ function App() {
     setError("");
     setResults(null);
     setStatus("Uploading image to processing pipeline...");
+    startPipelineStepTicker();
 
     try {
       const formData = new FormData();
@@ -167,11 +221,11 @@ function App() {
 
       const id = response.data.processingId;
       setProcessingId(id);
-      setStatus("Image queued. Running asynchronous AI analysis...");
 
       checkStatus(id);
     } catch (err) {
       console.error(err);
+      stopPipelineStepTicker();
       setError(
         err.response?.data?.error ||
           "Failed to upload image. Make sure the backend service is reachable."
@@ -189,19 +243,13 @@ function App() {
 
       const currentStatus = response.data.status;
 
-      if (currentStatus === "PENDING") {
-        setStatus("Image is queued in the worker pipeline...");
-        setTimeout(() => checkStatus(id), 1200);
-        return;
-      }
-
-      if (currentStatus === "PROCESSING") {
-        setStatus("AI engine is extracting quality metrics & license plate...");
+      if (currentStatus === "PENDING" || currentStatus === "PROCESSING") {
         setTimeout(() => checkStatus(id), 1200);
         return;
       }
 
       if (currentStatus === "FAILED") {
+        stopPipelineStepTicker();
         setError(
           response.data.failureReason ||
             "Image processing failed during analysis."
@@ -212,11 +260,16 @@ function App() {
       }
 
       if (currentStatus === "COMPLETED") {
-        setStatus("Analysis complete. Loading verification report...");
-        getResults(id);
+        setProgressPercent(100);
+        setStepMessage("Verification complete! Rendering your report...");
+        setTimeout(() => {
+          stopPipelineStepTicker();
+          getResults(id);
+        }, 400);
       }
     } catch (err) {
       console.error(err);
+      stopPipelineStepTicker();
       setError("Unable to check image processing status.");
       setStatus("");
       setUploading(false);
@@ -241,6 +294,7 @@ function App() {
   };
 
   const resetApplication = () => {
+    stopPipelineStepTicker();
     setFile(null);
     setPreview("");
     setProcessingId("");
@@ -517,13 +571,51 @@ function App() {
                 )}
               </div>
 
-              {/* Progress & Status Indicators */}
-              {status && (
-                <div className="status-container">
-                  <div className="progress-bar-animated"></div>
-                  <div className="status-message">
+              {/* Interactive Real-Time Pipeline Progress Indicator */}
+              {uploading && (
+                <div className="interactive-pipeline-card">
+                  <div className="pipeline-header">
+                    <div className="pipeline-title-group">
+                      <span className="pipeline-step-badge">
+                        Step {currentStep} of 4
+                      </span>
+                      <strong className="pipeline-heading">Real-Time Verification Pipeline</strong>
+                    </div>
+                    <span className="pipeline-percent-badge">{progressPercent}%</span>
+                  </div>
+
+                  {/* Progressive Meter */}
+                  <div className="pipeline-meter-track">
+                    <div
+                      className="pipeline-meter-fill"
+                      style={{ width: `${progressPercent}%` }}
+                    ></div>
+                  </div>
+
+                  {/* Conversational Dynamic Stage Message */}
+                  <div className="pipeline-dynamic-message">
                     <span className="status-dot"></span>
-                    <span>{status}</span>
+                    <span className="dynamic-msg-text">{stepMessage}</span>
+                  </div>
+
+                  {/* 4 Interactive Milestone Pills */}
+                  <div className="pipeline-milestones">
+                    <div className={`milestone-pill ${currentStep >= 1 ? (currentStep > 1 ? "completed" : "active") : ""}`}>
+                      <span className="m-icon">{currentStep > 1 ? "✓" : "1"}</span>
+                      <span>Quality & Blur</span>
+                    </div>
+                    <div className={`milestone-pill ${currentStep >= 2 ? (currentStep > 2 ? "completed" : "active") : ""}`}>
+                      <span className="m-icon">{currentStep > 2 ? "✓" : "2"}</span>
+                      <span>Plate Localization</span>
+                    </div>
+                    <div className={`milestone-pill ${currentStep >= 3 ? (currentStep > 3 ? "completed" : "active") : ""}`}>
+                      <span className="m-icon">{currentStep > 3 ? "✓" : "3"}</span>
+                      <span>Neural OCR</span>
+                    </div>
+                    <div className={`milestone-pill ${currentStep >= 4 ? (progressPercent === 100 ? "completed" : "active") : ""}`}>
+                      <span className="m-icon">{progressPercent === 100 ? "✓" : "4"}</span>
+                      <span>MoRTH & RTO</span>
+                    </div>
                   </div>
                 </div>
               )}

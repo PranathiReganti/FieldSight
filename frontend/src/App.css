@@ -680,52 +680,143 @@ body {
   }
 }
 
-/* Status & Alert Boxes */
-.status-container {
-  margin-top: 18px;
-  background: #f0fdf4;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  position: relative;
-  overflow: hidden;
+/* Interactive Real-Time Pipeline Tracker Card */
+.interactive-pipeline-card {
+  margin-top: 20px;
+  background: #f8fafc;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+  animation: fadeIn 0.3s ease;
 }
 
-.progress-bar-animated {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 3px;
+.pipeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pipeline-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pipeline-step-badge {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(37, 99, 235, 0.25);
+}
+
+.pipeline-heading {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.pipeline-percent-badge {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.pipeline-meter-track {
   width: 100%;
-  background: linear-gradient(90deg, #10b981, #3b82f6, #6366f1);
-  background-size: 200% 100%;
-  animation: progressShimmer 1.5s linear infinite;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 14px;
 }
 
-@keyframes progressShimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+.pipeline-meter-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #6366f1, #10b981);
+  border-radius: 10px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.status-message {
+.pipeline-dynamic-message {
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 13px;
   font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 16px;
+  background: #ffffff;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.dynamic-msg-text {
+  flex: 1;
+}
+
+.pipeline-milestones {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.milestone-pill {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  transition: all 0.2s ease;
+}
+
+.milestone-pill .m-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.milestone-pill.active {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+
+.milestone-pill.active .m-icon {
+  background: var(--primary);
+  color: #ffffff;
+  animation: pulseBlue 1.5s infinite;
+}
+
+.milestone-pill.completed {
+  background: #ecfdf5;
+  border-color: #10b981;
   color: #065f46;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
+.milestone-pill.completed .m-icon {
   background: #10b981;
-  border-radius: 50%;
-  animation: pulseGreen 1.5s infinite;
+  color: #ffffff;
 }
 
 .error-message {
