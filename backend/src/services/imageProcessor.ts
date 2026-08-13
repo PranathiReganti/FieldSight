@@ -626,10 +626,10 @@ function parseStackedLines(line1: string, line2: string): string[] {
   let c1 = line1.toUpperCase().replace(/[^A-Z0-9]/g, "");
   let c2 = line2.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-  // Remove spurious noise characters inserted between 2-letter state and district (e.g. MHI12 -> MH12)
+  // Remove noise characters inserted between 2-letter state and district (e.g. MHI12 -> MH12)
   c1 = c1.replace(/^([A-Z]{2})[I|l1](\d{2})/, "$1$2");
 
-  for (let s = 0; s <= Math.min(4, c1.length - 2); s++) {
+  for (let s = 0; s <= Math.min(3, c1.length - 2); s++) {
     const rawState = c1.slice(s, s + 2);
     const stateCandidates = [
       correctLetterCharacters(rawState),
@@ -647,13 +647,16 @@ function parseStackedLines(line1: string, line2: string): string[] {
         if (dLen === 1 && state !== "DL") continue;
         if (!isValidStateDistrict(state, district)) continue;
 
-        const rawSeries1 = c1.slice(s + 2 + dLen, s + 2 + dLen + 2);
+        // Series 1: take only the contiguous letter sequence following the district code
+        const afterDist = c1.slice(s + 2 + dLen);
+        const series1Match = afterDist.match(/^([A-Z]+)/);
+        const rawSeries1 = series1Match ? series1Match[1] : "";
         const series1 = correctLetterCharacters(rawSeries1).replace(/[^A-Z]/g, "");
 
         // Find 4-digit number in line 2
         const numMatch = c2.match(/(\d{4})/);
         if (numMatch && numMatch.index !== undefined) {
-          const rawSeries2 = c2.slice(0, numMatch.index);
+          const rawSeries2 = c2.slice(0, numMatch.index).replace(/[^A-Z]/g, "");
           const series2 = correctLetterCharacters(rawSeries2).replace(/[^A-Z]/g, "");
           const number = numMatch[1];
 
@@ -745,7 +748,6 @@ function parseGenericPlateCandidates(
 
     for (let i = 0; i < lines.length - 1; i++) {
       for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
-        addIfValid(`${lines[i]}${lines[j]}`);
         for (const stacked of parseStackedLines(lines[i], lines[j])) {
           candidates.add(stacked);
         }
